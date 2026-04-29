@@ -12,7 +12,6 @@ class FanimesApp extends StatelessWidget {
       theme: ThemeData.dark().copyWith(
         primaryColor: const Color(0xFF673AB7),
         scaffoldBackgroundColor: const Color(0xFF0D0D0D),
-        appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF0D0D0D), elevation: 0),
       ),
       home: const MainNavigation(),
     );
@@ -27,170 +26,106 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
+  
+  // LOGICA DE CARGOS: 'Geral', 'Vice', 'Sub' ou 'Usuario'
+  String meuCargo = 'Geral'; 
+  String meuNick = 'Carlos Andre';
 
-  void _showNotifications() {
+  // SIMULAÇÃO DO BANCO DE DADOS (O que você vai gerenciar no Painel)
+  final List<Map<String, dynamic>> catalogo = [
+    {"nome": "Solo Leveling", "genero": "Isekai", "tag": "EP 12", "status": "Em andamento", "dia": "Sábado"},
+    {"nome": "Artes das Sombras", "genero": "Xianxia", "tag": "DUB", "status": "Em andamento", "dia": "Quarta"},
+    {"nome": "Re:Zero", "genero": "Isekai", "tag": "LEG", "status": "Em andamento", "dia": "Quarta"},
+  ];
+
+  // ABRIR PAINEL ADM (O SEGREDO)
+  void _abrirPainelAdm() {
+    if (meuCargo == 'Usuario') return; // Usuário comum não vê nada
+    
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: const Color(0xFF1A1A1A),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        height: 300,
+        height: MediaQuery.of(context).size.height * 0.8,
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const Text("Notificações", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text("PAINEL $meuCargo", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.deepPurpleAccent)),
             const Divider(color: Colors.white24),
-            ListTile(
-              leading: const Icon(Icons.info, color: Colors.deepPurpleAccent),
-              title: const Text("Novo episódio disponível!"),
-              subtitle: const Text("Assista agora mesmo."),
-              trailing: IconButton(icon: const Icon(Icons.delete_sweep, color: Colors.redAccent), onPressed: () {}),
-            ),
-            const Spacer(),
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Fechar"))
+            ListTile(leading: const Icon(Icons.people), title: const Text("Gerenciar Usuários")),
+            ListTile(leading: const Icon(Icons.video_collection), title: const Text("Adicionar/Marcar Gêneros")),
+            ListTile(leading: const Icon(Icons.support_agent), title: const Text("Tickets de Suporte")),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAnimeRail(String title, List<String> tags) {
+  // WIDGET DOS TRILHOS DA HOME
+  Widget _buildTrilho(String titulo) {
+    var listaFiltrada = catalogo.where((a) => a['genero'] == titulo).toList();
+    if (listaFiltrada.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween, // CORRIGIDO AQUI!
-            children: [
-              Row(
-                children: [
-                  Container(width: 4, height: 18, color: Colors.deepPurpleAccent),
-                  const SizedBox(width: 8),
-                  Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                ],
-              ),
-              GestureDetector(
-                onTap: () => setState(() => _selectedIndex = 1), 
-                child: const Text("Ver tudo >", style: TextStyle(color: Colors.grey, fontSize: 13)),
-              ),
-            ],
-          ),
+          padding: const EdgeInsets.all(16),
+          child: Text(titulo, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         ),
         SizedBox(
-          height: 190,
+          height: 180,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.only(left: 16),
-            itemCount: 6,
-            itemBuilder: (ctx, i) => _animeCard(tags[i % tags.length]),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _animeCard(String tag) {
-    return Container(
-      width: 125,
-      margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: 6,
-            left: 6,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: tag.contains("EP") ? Colors.blue : (tag == "DUB" ? Colors.green : Colors.red),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(tag, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+            itemCount: listaFiltrada.length,
+            itemBuilder: (ctx, i) => Container(
+              width: 120,
+              margin: const EdgeInsets.only(right: 12),
+              decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(8)),
+              child: Center(child: Text(listaFiltrada[i]['nome'], textAlign: TextAlign.center)),
             ),
           ),
-          const Align(
-            alignment: Alignment.bottomCenter, 
-            child: Padding(
-              padding: EdgeInsets.all(8), 
-              child: Text("Anime Name", maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12))
-            )
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHome() {
-    return ListView(
-      children: [
-        Container(
-          height: 230,
-          margin: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            color: const Color(0xFF1A1A1A),
-          ),
-          child: Stack(
-            children: [
-              Center(child: Icon(Icons.play_circle_fill, size: 60, color: Colors.deepPurpleAccent.withOpacity(0.8))),
-              const Positioned(
-                bottom: 15,
-                left: 15,
-                child: Text("Destaque da Semana", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
         ),
-        _buildAnimeRail("Continuar Assistindo", ["EP 08", "EP 02"]),
-        _buildAnimeRail("Lançamentos de Hoje", ["DUB", "LEG", "DUB"]),
-        _buildAnimeRail("Isekai", ["LEG", "LEG"]),
-        const SizedBox(height: 20),
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> pages = [
-      _buildHome(),
-      const Center(child: Text("Biblioteca")),
-      const Center(child: Text("Busca")),
-      const Center(child: Text("Agenda")),
-      const Center(child: Text("Perfil")),
-    ];
-
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color(0xFF0D0D0D),
+        elevation: 0,
         centerTitle: true,
-        title: RichText(
-          text: const TextSpan(
-            style: TextStyle(letterSpacing: 4, fontWeight: FontWeight.bold, fontSize: 20),
-            children: [
-              TextSpan(text: 'FÃ', style: TextStyle(color: Colors.deepPurpleAccent)),
-              TextSpan(text: 'NIMES', style: TextStyle(color: Colors.white)),
-            ],
+        title: GestureDetector(
+          onTap: _abrirPainelAdm, // O BOTÃO SECRETO ESTÁ AQUI
+          child: RichText(
+            text: const TextSpan(
+              style: TextStyle(letterSpacing: 4, fontWeight: FontWeight.bold, fontSize: 20),
+              children: [
+                TextSpan(text: 'FÃ', style: TextStyle(color: Colors.deepPurpleAccent)),
+                TextSpan(text: 'NIMES', style: TextStyle(color: Colors.white)),
+              ],
+            ),
           ),
         ),
-        actions: [
-          IconButton(icon: const Icon(Icons.notifications_none, color: Colors.white), onPressed: _showNotifications),
-        ],
+        actions: [IconButton(icon: const Icon(Icons.notifications_none), onPressed: () {})],
       ),
-      body: pages[_selectedIndex],
+      body: _selectedIndex == 0 
+        ? ListView(children: [ _buildTrilho("Xianxia"), _buildTrilho("Isekai"), _buildTrilho("Ação") ])
+        : const Center(child: Text("Próximas abas sendo carregadas...")),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (i) => setState(() => _selectedIndex = i),
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.deepPurpleAccent,
-        unselectedItemColor: Colors.grey,
         backgroundColor: const Color(0xFF0D0D0D),
+        selectedItemColor: Colors.deepPurpleAccent,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.video_library), label: 'Biblioteca'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Busca'),
+          BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: 'Biblioteca'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Pesquisa'),
           BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: 'Agenda'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
