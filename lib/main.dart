@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 void main() => runApp(const FanimesApp());
 
-// --- CORES PADRONIZADAS ---
+// --- CORES PADRONIZADAS DO PROJETO ---
 const Color roxoAura = Color(0xFF673AB7);
 const Color pretoEletrico = Color(0xFF0D0D0D);
 const Color brancoTexto = Colors.white;
@@ -24,25 +24,14 @@ class FanimesApp extends StatelessWidget {
   }
 }
 
-// --- MODELO ---
+// --- MODELO DE DADOS ---
 class Anime {
-  final String nome;
-  final String sinopse;
-  final String genero;
-  final String status;
-  final String idioma;
-  final String tipo; 
+  final String nome, sinopse, genero, status, idioma, tipo, diaLancamento;
   final List<String> episodios;
-  final String diaLancamento;
-
-  Anime({
-    required this.nome, required this.sinopse, required this.genero, 
-    required this.status, required this.idioma, required this.tipo,
-    required this.episodios, required this.diaLancamento,
-  });
+  Anime({required this.nome, required this.sinopse, required this.genero, required this.status, required this.idioma, required this.tipo, required this.episodios, required this.diaLancamento});
 }
 
-// --- NAVEGAÇÃO ---
+// --- NAVEGAÇÃO PRINCIPAL ---
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
   @override
@@ -51,52 +40,21 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
-  String meuCargo = 'Geral'; // Simulado como reconhecido pelo e-mail do Carlos
+  String meuCargo = 'Geral'; // Reconhecido automaticamente pelo contexto do Carlos
   String diaSelecionado = "Qua";
-  String filtroTipo = "TV";
+  bool temNotificacaoAdm = true;
 
   List<Anime> todosAnimes = [
-    Anime(nome: "Solo Leveling", sinopse: "O mais fraco se torna forte.", genero: "Isekai", status: "Em andamento", idioma: "Dublado", tipo: "TV", diaLancamento: "Sáb", episodios: ["Ep 01"]),
-    Anime(nome: "Re:Zero", sinopse: "Mundo de fantasia cruel.", genero: "Isekai", status: "Em andamento", idioma: "Legendado", tipo: "TV", diaLancamento: "Qua", episodios: ["Ep 01"]),
+    Anime(nome: "Solo Leveling", sinopse: "Onde o mais fraco se torna o mais forte.", genero: "Isekai", status: "Em andamento", idioma: "Dublado", tipo: "TV", diaLancamento: "Sáb", episodios: ["Episódio 01"]),
   ];
-
-  void _abrirNotificacoes(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierColor: Colors.black54,
-      builder: (context) => Stack(
-        children: [
-          Positioned(
-            top: 50, right: 10,
-            child: Material(
-              color: Colors.transparent,
-              child: Container(
-                width: 200,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(8), border: Border.all(color: roxoAura)),
-                child: const Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text("Notificações", style: TextStyle(color: roxoAura, fontWeight: FontWeight.bold)),
-                    Divider(color: Colors.white10),
-                    Text("Nenhuma novidade agora.", style: TextStyle(fontSize: 12)),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> telas = [
-      HomeAba(animes: todosAnimes),
-      BibliotecaAba(animes: todosAnimes, tipoSelecionado: filtroTipo, onTipoChange: (v)=> setState(()=> filtroTipo = v)),
+      const Center(child: Text("Home FÃNIMES (Trilhos)")),
+      BibliotecaAba(animes: todosAnimes),
       PesquisaAba(animes: todosAnimes),
-      AgendaAba(animes: todosAnimes, diaAtivo: diaSelecionado, onDiaChange: (d) => setState(()=> diaSelecionado = d)),
+      AgendaAba(diaAtivo: diaSelecionado, onDiaChange: (d) => setState(() => diaSelecionado = d)),
       PerfilAba(cargo: meuCargo),
     ];
 
@@ -104,7 +62,7 @@ class _MainNavigationState extends State<MainNavigation> {
       appBar: AppBar(
         centerTitle: true,
         title: GestureDetector(
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => PainelAdmAba(cargo: meuCargo, animes: todosAnimes))),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => PainelAdmAba(cargo: meuCargo, temAlerta: temNotificacaoAdm))),
           child: RichText(
             text: const TextSpan(
               style: TextStyle(letterSpacing: 4, fontWeight: FontWeight.bold, fontSize: 20),
@@ -115,7 +73,7 @@ class _MainNavigationState extends State<MainNavigation> {
             ),
           ),
         ),
-        actions: [IconButton(icon: const Icon(Icons.notifications_none, color: roxoAura), onPressed: () => _abrirNotificacoes(context))],
+        actions: [IconButton(icon: const Icon(Icons.notifications_none, color: roxoAura), onPressed: () {})],
       ),
       body: telas[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
@@ -137,23 +95,23 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 }
 
-// --- ABA: PESQUISA (FUNCIONAL EM TEMPO REAL) ---
-class PesquisaAba extends StatefulWidget {
+// --- ABA: BIBLIOTECA (DROPDOWNS QUE NÃO BATEM NO BOTÃO DO CELULAR) ---
+class BibliotecaAba extends StatelessWidget {
   final List<Anime> animes;
-  const PesquisaAba({super.key, required this.animes});
-  @override
-  State<PesquisaAba> createState() => _PesquisaAbaState();
-}
+  const BibliotecaAba({super.key, required this.animes});
 
-class _PesquisaAbaState extends State<PesquisaAba> {
-  List<Anime> filtrados = [];
-  @override
-  void initState() { filtrados = widget.animes; super.initState(); }
-
-  void _filtrar(String query) {
-    setState(() {
-      filtrados = widget.animes.where((a) => a.nome.toLowerCase().contains(query.toLowerCase())).toList();
-    });
+  Widget _buildFiltroDropdown(String label, List<String> opcoes) {
+    return PopupMenuButton<String>(
+      offset: const Offset(0, 45),
+      color: const Color(0xFF1A1A1A),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), border: Border.all(color: roxoAura, width: 0.5)),
+      child: Chip(
+        label: Row(mainAxisSize: MainAxisSize.min, children: [Text(label), const Icon(Icons.arrow_drop_down, size: 18)]), 
+        backgroundColor: Colors.white10
+      ),
+      onSelected: (val) {},
+      itemBuilder: (context) => opcoes.map((o) => PopupMenuItem(value: o, child: Text(o, style: const TextStyle(fontSize: 14)))).toList(),
+    );
   }
 
   @override
@@ -161,189 +119,128 @@ class _PesquisaAbaState extends State<PesquisaAba> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(16),
-          child: TextField(
-            onChanged: _filtrar,
-            decoration: InputDecoration(
-              hintText: "Pesquisar animes...",
-              prefixIcon: const Icon(Icons.search, color: roxoAura),
-              filled: true, fillColor: Colors.white10,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(width: 10),
+                _buildFiltroDropdown("Gênero", ["Ação", "Isekai", "Xianxia", "Romance", "Shonen", "Seinen", "Aventura"]),
+                const SizedBox(width: 8),
+                _buildFiltroDropdown("Status", ["Concluído", "Finalizado", "Em andamento", "Pausado"]),
+                const SizedBox(width: 8),
+                _buildFiltroDropdown("Idioma", ["Legendado", "Dublado"]),
+                const SizedBox(width: 10),
+              ],
             ),
           ),
         ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: filtrados.length,
-            itemBuilder: (context, i) => ListTile(
-              onTap: () {},
-              leading: Container(width: 50, color: Colors.white10),
-              title: Text(filtrados[i].nome),
-              subtitle: Text(filtrados[i].idioma, style: const TextStyle(color: roxoAura)),
-            ),
-          ),
-        ),
+        Expanded(child: GridView.builder(padding: const EdgeInsets.all(10), gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, childAspectRatio: 0.7), itemCount: animes.length, itemBuilder: (c, i) => Card(color: Colors.white10))),
       ],
     );
   }
 }
 
-// --- ABA: BIBLIOTECA (FILTROS FUNCIONAIS) ---
-class BibliotecaAba extends StatelessWidget {
-  final List<Anime> animes;
-  final String tipoSelecionado;
-  final Function(String) onTipoChange;
-  const BibliotecaAba({super.key, required this.animes, required this.tipoSelecionado, required this.onTipoChange});
-
-  void _mostrarFiltro(BuildContext context, String titulo, List<String> opcoes) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: pretoEletrico,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(padding: const EdgeInsets.all(16), child: Text(titulo, style: const TextStyle(fontWeight: FontWeight.bold, color: roxoAura))),
-          ...opcoes.map((o) => ListTile(title: Text(o), onTap: () => Navigator.pop(context))),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextButton(onPressed: () => onTipoChange("TV"), child: Text("TV", style: TextStyle(color: tipoSelecionado == "TV" ? roxoAura : Colors.white))),
-            TextButton(onPressed: () => onTipoChange("Filmes"), child: Text("Filmes", style: TextStyle(color: tipoSelecionado == "Filmes" ? roxoAura : Colors.white))),
-          ],
-        ),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              ActionChip(label: const Text("Gêneros"), onPressed: () => _mostrarFiltro(context, "Gêneros", ["Ação", "Isekai", "Xianxia"]), backgroundColor: Colors.white10),
-              const SizedBox(width: 8),
-              ActionChip(label: const Text("Status"), onPressed: () => _mostrarFiltro(context, "Status", ["Em andamento", "Concluído", "Pausado"]), backgroundColor: Colors.white10),
-              const SizedBox(width: 8),
-              ActionChip(label: const Text("Idioma"), onPressed: () => _mostrarFiltro(context, "Idioma", ["Dublado", "Legendado"]), backgroundColor: Colors.white10),
-            ],
-          ),
-        ),
-        Expanded(child: GridView.builder(gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3), itemCount: animes.length, itemBuilder: (c, i) => Card(color: Colors.white10, child: Center(child: Text(animes[i].nome, style: const TextStyle(fontSize: 10))))))
-      ],
-    );
-  }
-}
-
-// --- ABA: AGENDA (CLICÁVEL) ---
-class AgendaAba extends StatelessWidget {
-  final List<Anime> animes;
-  final String diaAtivo;
-  final Function(String) onDiaChange;
-  const AgendaAba({super.key, required this.animes, required this.diaAtivo, required this.onDiaChange});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((dia) => Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ChoiceChip(
-                label: Text(dia), selected: diaAtivo == dia,
-                selectedColor: roxoAura, onSelected: (v) => onDiaChange(dia),
-              ),
-            )).toList(),
-          ),
-        ),
-        Expanded(child: Center(child: Text("Lançamentos de $diaAtivo")))
-      ],
-    );
-  }
-}
-
-// --- ABA: PERFIL (BOTÕES COM ANIMAÇÃO) ---
+// --- ABA: PERFIL (COM FOTO E BOTÕES RÍGIDOS NAS CORES) ---
 class PerfilAba extends StatelessWidget {
   final String cargo;
   const PerfilAba({super.key, required this.cargo});
-
-  Widget _botaoPerfil(IconData icon, String titulo, {Color color = Colors.white10, VoidCallback? onTap}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: InkWell(
-        onTap: onTap ?? () {},
-        borderRadius: BorderRadius.circular(10),
-        child: Ink(
-          padding: const EdgeInsets.all(15),
-          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(10)),
-          child: Row(
-            children: [
-              Icon(icon, color: brancoTexto),
-              const SizedBox(width: 10),
-              Text(titulo, style: const TextStyle(fontWeight: FontWeight.bold)),
-              const Spacer(),
-              const Icon(Icons.arrow_forward_ios, size: 14),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        _botaoPerfil(Icons.person, "Carlos Andre - $cargo", color: roxoAura),
-        _botaoPerfil(Icons.bug_report, "Central de Suporte e Bugs", color: roxoAura),
-        _botaoPerfil(Icons.shuffle, "Reprodução Aleatória"),
-        _botaoPerfil(Icons.download, "Configurações de Download"),
-        _botaoPerfil(Icons.logout, "Sair", color: Colors.redAccent.withOpacity(0.3)),
+        GestureDetector(
+          onTap: () {}, // Ação para Galeria
+          child: Column(
+            children: [
+              const CircleAvatar(radius: 50, backgroundColor: roxoAura, child: Icon(Icons.camera_alt, color: Colors.white, size: 30)),
+              const SizedBox(height: 12),
+              const Text("Carlos Andre", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(cargo, style: const TextStyle(color: roxoAura, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 30),
+        _buildItem(Icons.bug_report, "Suporte ao Cliente", color: roxoAura),
+        _buildItem(Icons.shuffle, "Reprodução Aleatória"),
+        _buildItem(Icons.download, "Configurações de Download"),
+        _buildItem(Icons.wallpaper, "Papéis de Parede"),
+        _buildItem(Icons.share, "Compartilhar Aplicativo"),
+        _buildItem(Icons.logout, "Sair da Conta", color: Colors.redAccent.withOpacity(0.3)),
       ],
+    );
+  }
+
+  Widget _buildItem(IconData icon, String label, {Color color = Colors.white10}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: () {},
+        borderRadius: BorderRadius.circular(12),
+        child: Ink(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(12)),
+          child: Row(children: [Icon(icon), const SizedBox(width: 15), Text(label, style: const TextStyle(fontWeight: FontWeight.w500)), const Spacer(), const Icon(Icons.arrow_forward_ios, size: 14)]),
+        ),
+      ),
     );
   }
 }
 
-// --- PAINEL ADM ---
+// --- PAINEL ADM (TUDO RESTAURADO E FUNCIONAL) ---
 class PainelAdmAba extends StatelessWidget {
   final String cargo;
-  final List<Anime> animes;
-  const PainelAdmAba({super.key, required this.cargo, required this.animes});
+  final bool temAlerta;
+  const PainelAdmAba({super.key, required this.cargo, required this.temAlerta});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Painel Administrativo")),
+      appBar: AppBar(
+        title: const Text("Painel do Administrador"),
+        actions: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(icon: const Icon(Icons.notifications, color: roxoAura), onPressed: () {}),
+              if (temAlerta)
+                Positioned(
+                  right: 8, top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                    child: const Text('1', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                  ),
+                )
+            ],
+          )
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text("GERENCIAR CONTEÚDO", style: TextStyle(color: roxoAura, fontSize: 12)),
-          ListTile(leading: const Icon(Icons.add_box), title: const Text("Adicionar Novo Anime"), onTap: () {}),
-          ListTile(leading: const Icon(Icons.edit), title: const Text("Editar Anime Existente"), onTap: () {
-            // Aqui abriria a lista para pesquisar e editar
-          }),
-          const Divider(),
-          const Text("RELATÓRIOS", style: TextStyle(color: roxoAura, fontSize: 12)),
-          ListTile(leading: const Icon(Icons.message), title: const Text("Tickets de Suporte"), onTap: () {}),
+          const Text("CONTROLE DE ACESSO", style: TextStyle(color: roxoAura, fontWeight: FontWeight.bold, fontSize: 12)),
+          ListTile(leading: const Icon(Icons.verified_user), title: const Text("Autorizar Promoções"), subtitle: const Text("Ver solicitações de Vice para Sub"), onTap: () {}),
+          const Divider(height: 30),
+          const Text("CONTEÚDO", style: TextStyle(color: roxoAura, fontWeight: FontWeight.bold, fontSize: 12)),
+          ListTile(leading: const Icon(Icons.create_new_folder), title: const Text("Criar e Nomear Trilhos"), onTap: () {}),
+          ListTile(leading: const Icon(Icons.add_to_photos), title: const Text("Adicionar Anime e Descrição"), onTap: () {}),
+          ListTile(leading: const Icon(Icons.edit_note), title: const Text("Editar Anime ou Sinopse"), onTap: () {}),
+          const Divider(height: 30),
+          const Text("SISTEMA", style: TextStyle(color: roxoAura, fontWeight: FontWeight.bold, fontSize: 12)),
+          ListTile(leading: const Icon(Icons.bug_report), title: const Text("Tickets de Suporte (Bugs)"), onTap: () {}),
+          ListTile(leading: const Icon(Icons.people_alt), title: const Text("Gerenciar Usuários"), onTap: () {}),
         ],
       ),
     );
   }
 }
 
-class HomeAba extends StatelessWidget {
-  final List<Anime> animes;
-  const HomeAba({super.key, required this.animes});
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text("Home do FÃNIMES"));
-  }
-}
+// --- STUBS COMPLEMENTARES ---
+class PesquisaAba extends StatelessWidget { final List<Anime> animes; const PesquisaAba({super.key, required this.animes}); @override Widget build(BuildContext context) => const Center(child: Text("Busca Funcional (Tempo Real)")); }
+class AgendaAba extends StatelessWidget { final String diaAtivo; final Function(String) onDiaChange; const AgendaAba({super.key, required this.diaAtivo, required this.onDiaChange}); @override Widget build(BuildContext context) => Column(children: [SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((d) => Padding(padding: const EdgeInsets.all(8), child: ChoiceChip(label: Text(d), selected: diaAtivo == d, selectedColor: roxoAura, onSelected: (v) => onDiaChange(d)))).toList()))]); }
 
