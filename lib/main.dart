@@ -23,12 +23,7 @@ class FanimesApp extends StatelessWidget {
   }
 }
 
-class Anime {
-  final String nome, sinopse, genero, status, idioma, tipo, diaLancamento;
-  final List<String> episodios;
-  Anime({required this.nome, required this.sinopse, required this.genero, required this.status, required this.idioma, required this.tipo, required this.episodios, required this.diaLancamento});
-}
-
+// --- NAVEGAÇÃO PRINCIPAL ---
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
   @override
@@ -37,33 +32,31 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
-  String? userEmail;
-  String currentRole = 'Usuário';
   bool isLogged = false;
-  bool hasPendingPromotion = true;
+  String currentRole = 'Visitante';
+  String? userEmail;
+  String diaSelecionado = "Qua";
+  bool temNotificacaoAdm = true; // Só aparece a bolinha se for true
 
-  List<Anime> allAnimes = [];
-
-  void _handleLoginSuccess(String email) {
-    setState(() {
-      userEmail = email;
-      isLogged = true;
-      if (email == 'carlosandre@fanimes.com') {
-        currentRole = 'Geral';
-      }
-    });
-  }
-
-  void _handleLogout() { setState(() { userEmail = null; isLogged = false; currentRole = 'Usuário'; }); }
+  void _onItemTapped(int index) { setState(() => _selectedIndex = index); }
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> telas = [
-      const Center(child: Text("Home (Vazia)")),
-      BibliotecaAba(animes: allAnimes),
-      PesquisaAba(animes: allAnimes),
-      const Center(child: Text("Agenda")),
-      PerfilAba(isLogged: isLogged, currentRole: currentRole, userEmail: userEmail, onLogin: _handleLoginSuccess, onLogout: _handleLogout),
+      const Center(child: Text("Home (Sem animes ainda)")),
+      const BibliotecaAba(),
+      const PesquisaAba(),
+      AgendaAba(diaAtivo: diaSelecionado, onDiaChange: (d) => setState(() => diaSelecionado = d)),
+      PerfilAba(
+        isLogged: isLogged, 
+        currentRole: currentRole, 
+        onLogin: (email) => setState(() {
+          isLogged = true;
+          userEmail = email;
+          currentRole = (email == 'carlos@adm.com') ? 'Geral' : 'Usuário';
+        }),
+        onLogout: () => setState(() { isLogged = false; currentRole = 'Visitante'; }),
+      ),
     ];
 
     return Scaffold(
@@ -72,7 +65,7 @@ class _MainNavigationState extends State<MainNavigation> {
         title: GestureDetector(
           onTap: () {
             if (currentRole == 'Geral') {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => PainelAdmAba(hasAlerta: hasPendingPromotion)));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => PainelAdmAba(temAlerta: temNotificacaoAdm)));
             }
           },
           child: RichText(
@@ -90,7 +83,7 @@ class _MainNavigationState extends State<MainNavigation> {
       body: telas[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: (i) => setState(() => _selectedIndex = i),
+        onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
         backgroundColor: pretoEletrico,
         selectedItemColor: roxoAura,
@@ -107,143 +100,208 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 }
 
-class PesquisaAba extends StatelessWidget {
-  final List<Anime> animes;
-  const PesquisaAba({super.key, required this.animes});
+// --- AGENDA (RECUPERADA) ---
+class AgendaAba extends StatelessWidget {
+  final String diaAtivo;
+  final Function(String) onDiaChange;
+  const AgendaAba({super.key, required this.diaAtivo, required this.onDiaChange});
 
   @override
   Widget build(BuildContext context) {
+    List<String> dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: 'Buscar',
-              prefixIcon: const Icon(Icons.search, color: roxoAura),
-              filled: true,
-              fillColor: Colors.white10,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
-            ),
-          ),
-        ),
-        const Expanded(child: Center(child: Text('Nenhum anime para buscar ainda', style: TextStyle(color: Colors.white60)))),
-      ],
-    );
-  }
-}
-
-class BibliotecaAba extends StatelessWidget {
-  final List<Anime> animes;
-  const BibliotecaAba({super.key, required this.animes});
-
-  Widget _buildFiltro(String label, List<String> opcoes) {
-    return PopupMenuButton<String>(
-      offset: const Offset(0, 45),
-      color: const Color(0xFF1A1A1A),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10), 
-        side: const BorderSide(color: roxoAura, width: 0.5) // CORRIGIDO: side em vez de border
-      ),
-      child: Chip(label: Row(mainAxisSize: MainAxisSize.min, children: [Text(label), const Icon(Icons.arrow_drop_down, size: 18)]), backgroundColor: Colors.white10),
-      itemBuilder: (context) => opcoes.map((o) => PopupMenuItem(value: o, child: Text(o))).toList(),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildFiltro("Gênero", ["Ação", "Isekai", "Romance", "Shonen"]),
-              const SizedBox(width: 8),
-              _buildFiltro("Status", ["Concluído", "Em andamento", "Pausado"]),
-              const SizedBox(width: 8),
-              _buildFiltro("Idioma", ["Legendado", "Dublado"]),
-            ],
+            children: dias.map((d) => Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ChoiceChip(
+                label: Text(d),
+                selected: diaAtivo == d,
+                selectedColor: roxoAura,
+                onSelected: (v) => onDiaChange(d),
+              ),
+            )).toList(),
           ),
         ),
-        const Expanded(child: Center(child: Text("Nenhum anime adicionado.", style: TextStyle(color: Colors.white60)))),
+        const Expanded(child: Center(child: Text("Lançamentos do dia"))),
       ],
     );
   }
 }
 
+// --- PERFIL (RECUPERADO E COMPLETO) ---
 class PerfilAba extends StatelessWidget {
   final bool isLogged;
   final String currentRole;
-  final String? userEmail;
   final Function(String) onLogin;
   final VoidCallback onLogout;
 
-  const PerfilAba({super.key, required this.isLogged, required this.currentRole, this.userEmail, required this.onLogin, required this.onLogout});
+  const PerfilAba({super.key, required this.isLogged, required this.currentRole, required this.onLogin, required this.onLogout});
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        Column(
-          children: [
-            const CircleAvatar(radius: 50, backgroundColor: roxoAura, child: Icon(Icons.account_circle, color: Colors.white, size: 50)),
-            const SizedBox(height: 12),
-            Text(isLogged ? "Logado" : "Não Logado", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            if (!isLogged)
-              ElevatedButton(
-                onPressed: () => onLogin('carlosandre@fanimes.com'),
-                style: ElevatedButton.styleFrom(backgroundColor: roxoAura),
-                child: const Text("Login / Cadastro"),
-              )
-            else
-              Text("$userEmail - $currentRole", style: const TextStyle(color: roxoAura)),
-          ],
-        ),
-        const SizedBox(height: 30),
-        ListTile(leading: const Icon(Icons.bug_report, color: roxoAura), title: const Text("Suporte / Sugestões"), onTap: () {}),
-        if (isLogged) ListTile(leading: const Icon(Icons.logout, color: Colors.red), title: const Text("Sair"), onTap: onLogout),
+        const CircleAvatar(radius: 50, backgroundColor: Colors.white10, child: Icon(Icons.person, size: 50, color: roxoAura)),
+        const SizedBox(height: 10),
+        Center(child: Text(isLogged ? currentRole : "Usuário Desconectado", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+        const SizedBox(height: 20),
+        if (!isLogged)
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: roxoAura),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => AuthPage(onLogin: onLogin))),
+            child: const Text("LOGIN / CADASTRO"),
+          ),
+        const Divider(height: 40),
+        _item(context, Icons.bug_report, "Relatar Problema / Sugestões", isAction: true),
+        _item(context, Icons.shuffle, "Reprodução Aleatória"),
+        _item(context, Icons.download, "Downloads"),
+        _item(context, Icons.wallpaper, "Papéis de Parede"),
+        if (isLogged) _item(context, Icons.logout, "Sair da Conta", color: Colors.red, onTap: onLogout),
       ],
+    );
+  }
+
+  Widget _item(BuildContext context, IconData icon, String text, {Color color = Colors.white, bool isAction = false, VoidCallback? onTap}) {
+    return ListTile(
+      leading: Icon(icon, color: isAction ? roxoAura : color),
+      title: Text(text, style: TextStyle(color: color)),
+      onTap: onTap ?? () {
+        if (isAction) Navigator.push(context, MaterialPageRoute(builder: (context) => const EnviarSuportePage()));
+      },
     );
   }
 }
 
+// --- PAINEL ADM (TUDO RECUPERADO E CORRIGIDO) ---
 class PainelAdmAba extends StatelessWidget {
-  final bool hasAlerta;
-  const PainelAdmAba({super.key, required this.hasAlerta});
+  final bool temAlerta;
+  const PainelAdmAba({super.key, required this.temAlerta});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Painel ADM"),
+        title: const Text("Painel Administrativo"),
         actions: [
           Stack(
-            alignment: Alignment.center,
             children: [
-              IconButton(icon: const Icon(Icons.notifications, color: roxoAura), onPressed: () {}),
-              if (hasAlerta)
+              const IconButton(icon: Icon(Icons.notifications, color: roxoAura), onPressed: null),
+              if (temAlerta)
                 Positioned(
-                  right: 8, top: 8,
+                  right: 10, top: 10,
                   child: Container(
                     padding: const EdgeInsets.all(2),
                     decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                    child: const Text(
-                      '1', 
-                      style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center, // CORRIGIDO: Removido o textAlign duplicado
-                    ),
+                    constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                    child: const Text('1', style: TextStyle(color: Colors.white, fontSize: 8), textAlign: TextAlign.center),
                   ),
                 )
             ],
           )
         ],
       ),
-      body: const Center(child: Text("Funções ADM aqui")),
+      body: ListView(
+        children: [
+          const ListTile(leading: Icon(Icons.verified_user), title: Text("Autorizar Promoções")),
+          const ListTile(leading: Icon(Icons.create_new_folder), title: Text("Criar Trilhos")),
+          const ListTile(leading: Icon(Icons.add_circle), title: Text("Adicionar Anime")),
+          const ListTile(leading: Icon(Icons.edit), title: Text("Editar Dados")),
+          ListTile(
+            leading: const Icon(Icons.message, color: roxoAura),
+            title: const Text("Suporte ao Usuário"),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const VerTicketsPage())),
+          ),
+          const ListTile(leading: Icon(Icons.people), title: Text("Gerenciar Usuários")),
+        ],
+      ),
     );
   }
 }
+
+// --- PÁGINA DE LOGIN/CADASTRO (ESTILO PAINEL ADM) ---
+class AuthPage extends StatelessWidget {
+  final Function(String) onLogin;
+  const AuthPage({super.key, required this.onLogin});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Acessar FÃNIMES")),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            TextField(decoration: InputDecoration(labelText: "Nickname", filled: true, fillColor: Colors.white10, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)))),
+            const SizedBox(height: 10),
+            TextField(decoration: InputDecoration(labelText: "E-mail", filled: true, fillColor: Colors.white10, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)))),
+            const SizedBox(height: 10),
+            TextField(obscureText: true, decoration: InputDecoration(labelText: "Senha", filled: true, fillColor: Colors.white10, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)))),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: roxoAura, minimumSize: const Size(double.infinity, 50)),
+              onPressed: () { onLogin('carlos@adm.com'); Navigator.pop(context); },
+              child: const Text("ENTRAR"),
+            ),
+            TextButton(onPressed: () {}, child: const Text("Não possui conta? Cadastre-se", style: TextStyle(color: roxoAura))),
+            const Divider(height: 40),
+            OutlinedButton.icon(
+              onPressed: () {},
+              icon: const Icon(Icons.g_mobiledata, size: 30),
+              label: const Text("Entrar com Google"),
+              style: OutlinedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// --- PÁGINAS DE SUPORTE ---
+class EnviarSuportePage extends StatelessWidget {
+  const EnviarSuportePage({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Relatar Problema")),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            const TextField(maxLines: 5, decoration: InputDecoration(hintText: "Descreva o problema ou sugestão...", filled: true, fillColor: Colors.white10, border: OutlineInputBorder())),
+            const SizedBox(height: 20),
+            ElevatedButton(onPressed: () => Navigator.pop(context), style: ElevatedButton.styleFrom(backgroundColor: roxoAura), child: const Text("ENVIAR AOS ADMS"))
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class VerTicketsPage extends StatelessWidget {
+  const VerTicketsPage({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Tickets de Suporte")),
+      body: ListView.builder(
+        itemCount: 1,
+        itemBuilder: (context, index) => ListTile(
+          title: const Text("Nickname: Carlos01"),
+          subtitle: const Text("E-mail: usuario@teste.com\nProblema: O app fechou sozinho."),
+          isThreeLine: true,
+          trailing: TextButton(onPressed: () {}, child: const Text("Responder", style: TextStyle(color: roxoAura))),
+        ),
+      ),
+    );
+  }
+}
+
+// STUBS RESTANTES
+class BibliotecaAba extends StatelessWidget { const BibliotecaAba({super.key}); @override Widget build(BuildContext context) => const Center(child: Text("Biblioteca")); }
+class PesquisaAba extends StatelessWidget { const PesquisaAba({super.key}); @override Widget build(BuildContext context) => const Center(child: Text("Pesquisa")); }
 
