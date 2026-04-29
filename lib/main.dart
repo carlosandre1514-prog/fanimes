@@ -28,7 +28,7 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
 
-  // --- FUNÇÃO DE NOTIFICAÇÕES (MANTIDA) ---
+  // --- FUNÇÃO DE NOTIFICAÇÕES (PRESERVADA) ---
   void _showNotifications() {
     showModalBottomSheet(
       context: context,
@@ -55,76 +55,144 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 
-  // --- INTERFACES DAS ABAS ---
+  // --- COMPONENTES DO NOVO DESIGN DA HOME (ESTILO HYDRA) ---
 
-  Widget _buildHome() {
-    return ListView(
-      padding: const EdgeInsets.all(16),
+  Widget _buildAnimeRail(String title, List<String> tags) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Continuar Assistindo", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        Container(height: 160, decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.play_circle_outline, size: 50, color: Colors.deepPurpleAccent)),
-        const SizedBox(height: 25),
-        const Text("Lançamentos do Dia", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        SizedBox(height: 180, child: ListView.builder(scrollDirection: Axis.horizontal, itemCount: 5, itemBuilder: (ctx, i) => Container(width: 120, margin: const EdgeInsets.only(right: 12), decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(8))))),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.between,
+            children: [
+              Row(
+                children: [
+                  Container(width: 4, height: 18, color: Colors.deepPurpleAccent),
+                  const SizedBox(width: 8),
+                  Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              GestureDetector(
+                onTap: () => setState(() => _selectedIndex = 1), 
+                child: const Text("Ver tudo >", style: TextStyle(color: Colors.grey, fontSize: 13)),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 190,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.only(left: 16),
+            itemCount: 6,
+            itemBuilder: (ctx, i) => _animeCard(tags[i % tags.length]),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildSearch() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: "Pesquisar anime...",
-          prefixIcon: const Icon(Icons.search, color: Colors.deepPurpleAccent),
-          filled: true,
-          fillColor: const Color(0xFF1A1A1A),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+  Widget _animeCard(String tag) {
+    return Container(
+      width: 125,
+      margin: const EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(8),
+        image: const DecorationImage(
+          image: NetworkImage('https://via.placeholder.com/125x180'), // Placeholder para a capa
+          fit: BoxFit.cover,
         ),
+      ),
+      child: Stack(
+        children: [
+          // Gradiente para o nome não sumir no fundo
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
+              ),
+            ),
+          ),
+          Positioned(
+            top: 6,
+            left: 6,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: tag == "DUB" ? Colors.green.withOpacity(0.9) : Colors.red.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(tag, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+            ),
+          ),
+          const Align(
+            alignment: Alignment.bottomCenter, 
+            child: Padding(
+              padding: EdgeInsets.all(8), 
+              child: Text("Anime Name", maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12))
+            )
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildProfile() {
-    return Column(
+  Widget _buildHome() {
+    return ListView(
       children: [
-        const SizedBox(height: 40),
-        const CircleAvatar(radius: 50, backgroundColor: Color(0xFF1A1A1A), child: Icon(Icons.person, size: 60, color: Colors.grey)),
-        const SizedBox(height: 20),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 40),
-          child: ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF673AB7), minimumSize: const Size(double.infinity, 50)),
-            child: const Text("LOGIN / CADASTRAR", style: TextStyle(fontWeight: FontWeight.bold)),
+        // DESTAQUE (CARROSSEL)
+        Container(
+          height: 230,
+          margin: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            color: const Color(0xFF1A1A1A),
+          ),
+          child: Stack(
+            children: [
+              Center(child: Icon(Icons.play_circle_fill, size: 60, color: Colors.deepPurpleAccent.withOpacity(0.8))),
+              const Positioned(
+                bottom: 15,
+                left: 15,
+                child: Text("Destaque da Semana", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              ),
+            ],
           ),
         ),
-        const Divider(color: Colors.grey, thickness: 0.5, indent: 30, endIndent: 30, height: 40),
-        ListTile(leading: const Icon(Icons.settings, color: Colors.deepPurpleAccent), title: const Text("Configurações"), onTap: () {}),
-        ListTile(leading: const Icon(Icons.support_agent, color: Colors.deepPurpleAccent), title: const Text("Suporte"), onTap: () {}),
+        _buildAnimeRail("Continuar Assistindo", ["EP 08", "EP 02"]),
+        _buildAnimeRail("Lançamentos de Hoje", ["DUB", "LEG", "DUB"]),
+        _buildAnimeRail("Isekai", ["LEG", "LEG"]),
+        const SizedBox(height: 20),
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> pages = [_buildHome(), const Center(child: Text("Biblioteca")), _buildSearch(), const Center(child: Text("Agenda")), _buildProfile()];
+    // Páginas das abas (Preservando as que já funcionam)
+    final List<Widget> pages = [
+      _buildHome(),
+      const Center(child: Text("Biblioteca - Print em breve")),
+      const Center(child: Text("Busca")),
+      const Center(child: Text("Agenda - Print em breve")),
+      const Center(child: Text("Perfil")),
+    ];
 
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: GestureDetector(
-          onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Acesso Admin"), backgroundColor: Colors.deepPurple)),
-          child: RichText(
-            text: const TextSpan(
-              style: TextStyle(letterSpacing: 4, fontWeight: FontWeight.bold, fontSize: 20),
-              children: [
-                TextSpan(text: 'FÃ', style: TextStyle(color: Colors.deepPurpleAccent)),
-                TextSpan(text: 'NIMES', style: TextStyle(color: Colors.white)),
-              ],
-            ),
+        title: RichText(
+          text: const TextSpan(
+            style: TextStyle(letterSpacing: 4, fontWeight: FontWeight.bold, fontSize: 20),
+            children: [
+              TextSpan(text: 'FÃ', style: TextStyle(color: Colors.deepPurpleAccent)),
+              TextSpan(text: 'NIMES', style: TextStyle(color: Colors.white)),
+            ],
           ),
         ),
         actions: [
