@@ -25,7 +25,6 @@ class FanimesApp extends StatelessWidget {
   }
 }
 
-// --- NAVEGAÇÃO PRINCIPAL ---
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
   @override
@@ -60,7 +59,6 @@ class _MainNavigationState extends State<MainNavigation> {
         centerTitle: true,
         title: GestureDetector(
           onTap: () {
-            // Apenas ADM Geral acessa o painel clicando no título
             if (currentRole == 'ADM Geral') {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const PainelAdmAba()));
             }
@@ -75,8 +73,16 @@ class _MainNavigationState extends State<MainNavigation> {
             ),
           ),
         ),
-        // O ícone de notificações CONTINUA na Home (MainNavigation)
-        actions: [IconButton(icon: const Icon(Icons.notifications_none, color: roxoAura), onPressed: () {})],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none, color: roxoAura), 
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Central de Notificações"), backgroundColor: roxoAura)
+              );
+            }
+          )
+        ],
       ),
       body: telas[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
@@ -98,7 +104,102 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 }
 
-// --- TELA DE LOGIN COM SEGURANÇA ADM ---
+// --- BIBLIOTECA COM MENUS PROPORCIONAIS ---
+class BibliotecaAba extends StatefulWidget {
+  const BibliotecaAba({super.key});
+  @override
+  State<BibliotecaAba> createState() => _BibliotecaAbaState();
+}
+
+class _BibliotecaAbaState extends State<BibliotecaAba> {
+  final List<String> generos = ["Ação", "Aventura", "Comédia", "Drama", "Romance", "Psicológico", "Terror (Horror)", "Suspense", "Mistério", "Fantasia", "Sobrenatural", "Magia", "Ficção Científica", "Espaço", "Isekai", "Reencarnação", "Escolar", "Esportes", "Crime", "Policial", "Samurai", "Militar", "Mecha", "Superpoderes", "Battle Shounen", "Artes Marciais", "Harem", "Ecchi", "Hentai", "Seinen", "Shounen", "Tragédia", "Thriller", "Vampiros", "Demônios", "Apocalipse"];
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildMenuDropdown("Gênero", generos),
+              _buildMenuDropdown("Status", ["Concluído", "Em andamento", "Pausado"]),
+              _buildMenuDropdown("Idioma", ["Dublado", "Legendado"]),
+            ],
+          ),
+        ),
+        const Expanded(child: Center(child: Text("Lista de Animes"))),
+      ],
+    );
+  }
+
+  Widget _buildMenuDropdown(String label, List<String> itens) {
+    return PopupMenuButton<String>(
+      offset: const Offset(0, 45),
+      color: Colors.grey[900],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: ActionChip(
+        backgroundColor: Colors.white10,
+        label: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(label),
+            const Icon(Icons.arrow_drop_down, size: 18),
+          ],
+        ),
+        onPressed: null, // O PopupMenuButton cuida do clique
+      ),
+      onSelected: (value) {},
+      itemBuilder: (context) => itens.map((item) => PopupMenuItem<String>(
+        value: item,
+        height: 35,
+        child: Text(item, style: const TextStyle(fontSize: 13)),
+      )).toList(),
+    );
+  }
+}
+
+// --- PAINEL ADM ---
+class PainelAdmAba extends StatelessWidget {
+  const PainelAdmAba({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Painel Administrativo"), actions: const []),
+      body: ListView(
+        children: [
+          _admTile(Icons.verified_user, "Autorizar Promoções", null),
+          _admTile(Icons.create_new_folder, "Criar e Nomear Trilhos", null),
+          _admTile(Icons.add_circle, "Adicionar Anime", null),
+          _admTile(Icons.message, "Suporte ao Usuário", () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const VerTicketsPage()));
+          }),
+          _admTile(Icons.people, "Gerenciar Usuários", null),
+        ],
+      ),
+    );
+  }
+  Widget _admTile(IconData i, String t, VoidCallback? action) => ListTile(
+    leading: Icon(i, color: roxoAura), 
+    title: Text(t), 
+    onTap: action ?? () {}
+  );
+}
+
+// --- TELA DE TICKETS (SUPORTE ADM) ---
+class VerTicketsPage extends StatelessWidget {
+  const VerTicketsPage({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Mensagens de Suporte")),
+      body: const Center(child: Text("Nenhuma mensagem nova")),
+    );
+  }
+}
+
+// --- LOGIN / CADASTRO ---
 class AuthPage extends StatefulWidget {
   final Function(String) onLogin;
   const AuthPage({super.key, required this.onLogin});
@@ -110,129 +211,40 @@ class _AuthPageState extends State<AuthPage> {
   bool isCadastro = false;
   final TextEditingController _emailCtrl = TextEditingController();
   final TextEditingController _senhaCtrl = TextEditingController();
-  final TextEditingController _nickCtrl = TextEditingController();
-
   void _autenticar() {
-    // Validação estrita para ADM Geral conforme solicitado
     if (_emailCtrl.text == "carlos@adm.com" && _senhaCtrl.text == "123") {
       widget.onLogin("ADM Geral");
-      Navigator.pop(context);
     } else {
-      // Login comum para outros e-mails
       widget.onLogin("Usuário");
-      Navigator.pop(context);
     }
+    Navigator.pop(context);
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(isCadastro ? "Criar Conta" : "Login")),
+      appBar: AppBar(title: Text(isCadastro ? "Cadastro" : "Login")),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(children: [
-          if (isCadastro) TextField(controller: _nickCtrl, decoration: const InputDecoration(labelText: "Nickname", filled: true, fillColor: Colors.white10)),
+          if (isCadastro) const TextField(decoration: InputDecoration(labelText: "Nickname", filled: true, fillColor: Colors.white10)),
           const SizedBox(height: 10),
           TextField(controller: _emailCtrl, decoration: const InputDecoration(labelText: "E-mail", filled: true, fillColor: Colors.white10)),
           const SizedBox(height: 10),
           TextField(controller: _senhaCtrl, obscureText: true, decoration: const InputDecoration(labelText: "Senha", filled: true, fillColor: Colors.white10)),
           const SizedBox(height: 20),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: roxoAura, minimumSize: const Size(double.infinity, 50)),
-            onPressed: _autenticar, 
-            child: Text(isCadastro ? "CADASTRAR" : "ENTRAR")
-          ),
-          TextButton(
-            onPressed: () => setState(() => isCadastro = !isCadastro),
-            child: Text(isCadastro ? "Já tem conta? Entrar" : "Não possui conta? Cadastre-se", style: const TextStyle(color: roxoAura))
-          )
+          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: roxoAura, minimumSize: const Size(double.infinity, 50)), onPressed: _autenticar, child: Text(isCadastro ? "CADASTRAR" : "ENTRAR")),
+          TextButton(onPressed: () => setState(() => isCadastro = !isCadastro), child: Text(isCadastro ? "Já tem conta? Entrar" : "Não possui conta? Cadastre-se", style: const TextStyle(color: roxoAura)))
         ]),
       ),
     );
   }
 }
 
-// --- PAINEL ADM (NOTIFICAÇÃO REMOVIDA AQUI) ---
-class PainelAdmAba extends StatelessWidget {
-  const PainelAdmAba({super.key});
-
+// --- OUTRAS TELAS ---
+class EnviarSuportePage extends StatelessWidget {
+  const EnviarSuportePage({super.key});
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Painel Administrativo"),
-        // Sininho removido desta AppBar específica
-        actions: const [], 
-      ),
-      body: ListView(
-        children: [
-          _admTile(Icons.verified_user, "Autorizar Promoções"),
-          _admTile(Icons.create_new_folder, "Criar e Nomear Trilhos"),
-          _admTile(Icons.add_circle, "Adicionar Anime"),
-          _admTile(Icons.message, "Suporte ao Usuário"),
-          _admTile(Icons.people, "Gerenciar Usuários"),
-        ],
-      ),
-    );
-  }
-
-  Widget _admTile(IconData i, String t) => ListTile(
-    leading: Icon(i, color: roxoAura), 
-    title: Text(t),
-    onTap: () {}, // Funcionalidades futuras
-  );
-}
-
-// --- RESTANTE DAS ABAS (BIBLIOTECA, BUSCA, AGENDA, PERFIL) ---
-// (Mantivemos a lógica dos gêneros e o suporte funcional do código anterior)
-
-class BibliotecaAba extends StatefulWidget {
-  const BibliotecaAba({super.key});
-  @override
-  State<BibliotecaAba> createState() => _BibliotecaAbaState();
-}
-
-class _BibliotecaAbaState extends State<BibliotecaAba> {
-  String? filtroAberto;
-  final List<String> generos = ["Ação", "Aventura", "Comédia", "Drama", "Romance", "Psicológico", "Terror (Horror)", "Suspense", "Mistério", "Fantasia", "Sobrenatural", "Magia", "Ficção Científica", "Espaço", "Isekai", "Reencarnação", "Escolar", "Esportes", "Crime", "Policial", "Samurai", "Militar", "Mecha", "Superpoderes", "Battle Shounen", "Artes Marciais", "Harem", "Ecchi", "Hentai", "Seinen", "Shounen", "Tragédia", "Thriller", "Vampiros", "Demônios", "Apocalipse"];
-  
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _botaoFiltro("Gênero"),
-            _botaoFiltro("Status"),
-            _botaoFiltro("Idioma"),
-          ],
-        ),
-        if (filtroAberto != null) 
-          Container(
-            height: 200,
-            margin: const EdgeInsets.all(10),
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(10)),
-            child: ListView(children: _getItensFiltro()),
-          ),
-        const Expanded(child: Center(child: Text("Lista de Animes Filtrados"))),
-      ],
-    );
-  }
-
-  Widget _botaoFiltro(String label) => ActionChip(
-    backgroundColor: filtroAberto == label ? roxoAura : Colors.white10,
-    label: Text(label),
-    onPressed: () => setState(() => filtroAberto = filtroAberto == label ? null : label),
-  );
-
-  List<Widget> _getItensFiltro() {
-    if (filtroAberto == "Gênero") return generos.map((g) => ListTile(title: Text(g), dense: true)).toList();
-    if (filtroAberto == "Status") return ["Concluído", "Em andamento", "Pausado"].map((s) => ListTile(title: Text(s), dense: true)).toList();
-    if (filtroAberto == "Idioma") return ["Dublado", "Legendado"].map((i) => ListTile(title: Text(i), dense: true)).toList();
-    return [];
-  }
+  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text("Relatar Problema")), body: Padding(padding: const EdgeInsets.all(20), child: Column(children: [const TextField(maxLines: 5, decoration: InputDecoration(hintText: "Descreva aqui...", filled: true, fillColor: Colors.white10, border: OutlineInputBorder())), const SizedBox(height: 20), ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: roxoAura), onPressed: () => Navigator.pop(context), child: const Text("ENVIAR TICKET"))])));
 }
 
 class PesquisaAba extends StatelessWidget {
@@ -248,7 +260,7 @@ class AgendaAba extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<String> dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-    return Column(children: [SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: dias.map((d) => Padding(padding: const EdgeInsets.all(8.0), child: ChoiceChip(label: Text(d), selected: diaAtivo == d, selectedColor: roxoAura, onSelected: (v) => onDiaChange(d)))).toList())), const Expanded(child: Center(child: Text("Lançamentos agendados")))]);
+    return Column(children: [SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: dias.map((d) => Padding(padding: const EdgeInsets.all(8.0), child: ChoiceChip(label: Text(d), selected: diaAtivo == d, selectedColor: roxoAura, onSelected: (v) => onDiaChange(d)))).toList())), const Expanded(child: Center(child: Text("Lançamentos")))]);
   }
 }
 
@@ -258,7 +270,6 @@ class PerfilAba extends StatelessWidget {
   final Function(String) onLogin;
   final VoidCallback onLogout;
   const PerfilAba({super.key, required this.isLogged, required this.userNick, required this.currentRole, required this.onLogin, required this.onLogout});
-
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -271,24 +282,12 @@ class PerfilAba extends StatelessWidget {
         const SizedBox(height: 25),
         if (!isLogged) ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: roxoAura), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => AuthPage(onLogin: onLogin))), child: const Text("LOGIN / CADASTRO")),
         const Divider(height: 40),
-        _tile(context, Icons.bug_report, "Relatar Problema / Sugestões", isAction: true),
-        _tile(context, Icons.shuffle, "Reprodução Aleatória"),
-        _tile(context, Icons.download, "Downloads"),
-        _tile(context, Icons.wallpaper, "Papéis de Parede"),
-        if (isLogged) _tile(context, Icons.logout, "Sair da Conta", color: Colors.red, onTap: onLogout),
+        ListTile(leading: const Icon(Icons.bug_report, color: roxoAura), title: const Text("Relatar Problema"), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const EnviarSuportePage()))),
+        const ListTile(leading: Icon(Icons.shuffle), title: Text("Reprodução Aleatória")),
+        const ListTile(leading: Icon(Icons.download), title: Text("Downloads")),
+        if (isLogged) ListTile(leading: const Icon(Icons.logout, color: Colors.red), title: const Text("Sair", style: TextStyle(color: Colors.red)), onTap: onLogout),
       ],
     );
   }
-  Widget _tile(BuildContext context, IconData i, String t, {Color color = Colors.white, bool isAction = false, VoidCallback? onTap}) {
-    return ListTile(leading: Icon(i, color: isAction ? roxoAura : color), title: Text(t, style: TextStyle(color: color)), onTap: onTap ?? () {
-      if (isAction) Navigator.push(context, MaterialPageRoute(builder: (context) => const EnviarSuportePage()));
-    });
-  }
-}
-
-class EnviarSuportePage extends StatelessWidget {
-  const EnviarSuportePage({super.key});
-  @override
-  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text("Relatar Problema")), body: Padding(padding: const EdgeInsets.all(20), child: Column(children: [const TextField(maxLines: 5, decoration: InputDecoration(hintText: "Descreva o bug ou sugestão...", filled: true, fillColor: Colors.white10, border: OutlineInputBorder())), const SizedBox(height: 20), ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: roxoAura), onPressed: () => Navigator.pop(context), child: const Text("ENVIAR TICKET"))])));
 }
 
