@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "981746262412",
+    "project_id": "fanimes-de6d8",
+    "storage_bucket": "fanimes-de6d8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:981746262412:android:5e09c80ea9358c4b8a36a9",
+        "android_client_info": {
+          "package_name": "com.example.fanimes"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCfLL2Xq2UHJIEzaYtkx8vi0C9tp7_AnvY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

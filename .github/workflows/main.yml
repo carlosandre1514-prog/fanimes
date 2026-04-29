@@ -1,36 +1,22 @@
-name: Build APK
+name: Build APK FAnimes
 
 on:
   push:
-    branches: [ main, master ] # Roda quando envia código para a main ou master
+    branches: [ main ] # Ou 'master', dependendo da sua branch
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-
-      - name: Get Dependencies
-        run: flutter pub get
-
-      - name: Build APK
-        run: flutter build apk --split-per-abi
-
+      - run: flutter pub get
+      - run: flutter build apk --debug
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
-          name: app-release
-          path: build/app/outputs/flutter-apk/*.apk
+          name: app-debug
+          path: build/app/outputs/flutter-apk/app-debug.apk
 
