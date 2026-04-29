@@ -28,7 +28,6 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
 
-  // --- FUNÇÃO DE NOTIFICAÇÕES (PRESERVADA) ---
   void _showNotifications() {
     showModalBottomSheet(
       context: context,
@@ -55,8 +54,6 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 
-  // --- COMPONENTES DO NOVO DESIGN DA HOME (ESTILO HYDRA) ---
-
   Widget _buildAnimeRail(String title, List<String> tags) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,7 +61,7 @@ class _MainNavigationState extends State<MainNavigation> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.between,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween, // CORRIGIDO AQUI!
             children: [
               Row(
                 children: [
@@ -100,31 +97,16 @@ class _MainNavigationState extends State<MainNavigation> {
       decoration: BoxDecoration(
         color: const Color(0xFF1A1A1A),
         borderRadius: BorderRadius.circular(8),
-        image: const DecorationImage(
-          image: NetworkImage('https://via.placeholder.com/125x180'), // Placeholder para a capa
-          fit: BoxFit.cover,
-        ),
       ),
       child: Stack(
         children: [
-          // Gradiente para o nome não sumir no fundo
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
-              ),
-            ),
-          ),
           Positioned(
             top: 6,
             left: 6,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: tag == "DUB" ? Colors.green.withOpacity(0.9) : Colors.red.withOpacity(0.9),
+                color: tag.contains("EP") ? Colors.blue : (tag == "DUB" ? Colors.green : Colors.red),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(tag, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
@@ -145,7 +127,6 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget _buildHome() {
     return ListView(
       children: [
-        // DESTAQUE (CARROSSEL)
         Container(
           height: 230,
           margin: const EdgeInsets.all(16),
@@ -174,12 +155,11 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
-    // Páginas das abas (Preservando as que já funcionam)
     final List<Widget> pages = [
       _buildHome(),
-      const Center(child: Text("Biblioteca - Print em breve")),
+      const Center(child: Text("Biblioteca")),
       const Center(child: Text("Busca")),
-      const Center(child: Text("Agenda - Print em breve")),
+      const Center(child: Text("Agenda")),
       const Center(child: Text("Perfil")),
     ];
 
