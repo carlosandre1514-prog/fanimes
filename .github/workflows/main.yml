@@ -2,20 +2,24 @@ name: Build APK FAnimes
 
 on:
   push:
-    branches: [ main ] # Ou 'master', dependendo da sua branch
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4 # Atualizado para v4
+      
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          
       - run: flutter pub get
+      
       - run: flutter build apk --debug
+      
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4 # AQUI ESTAVA O ERRO! Atualizado para v4
         with:
           name: app-debug
           path: build/app/outputs/flutter-apk/app-debug.apk
