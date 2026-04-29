@@ -40,7 +40,7 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
-  String meuCargo = 'Geral'; // Reconhecido automaticamente pelo contexto do Carlos
+  String meuCargo = 'Geral'; 
   String diaSelecionado = "Qua";
   bool temNotificacaoAdm = true;
 
@@ -95,7 +95,7 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 }
 
-// --- ABA: BIBLIOTECA (DROPDOWNS QUE NÃO BATEM NO BOTÃO DO CELULAR) ---
+// --- ABA: BIBLIOTECA (CORREÇÃO DO ERRO DO BORDER AQUI) ---
 class BibliotecaAba extends StatelessWidget {
   final List<Anime> animes;
   const BibliotecaAba({super.key, required this.animes});
@@ -104,7 +104,10 @@ class BibliotecaAba extends StatelessWidget {
     return PopupMenuButton<String>(
       offset: const Offset(0, 45),
       color: const Color(0xFF1A1A1A),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), border: Border.all(color: roxoAura, width: 0.5)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10), 
+        side: const BorderSide(color: roxoAura, width: 0.5) // Correção: de 'border' para 'side'
+      ),
       child: Chip(
         label: Row(mainAxisSize: MainAxisSize.min, children: [Text(label), const Icon(Icons.arrow_drop_down, size: 18)]), 
         backgroundColor: Colors.white10
@@ -142,7 +145,7 @@ class BibliotecaAba extends StatelessWidget {
   }
 }
 
-// --- ABA: PERFIL (COM FOTO E BOTÕES RÍGIDOS NAS CORES) ---
+// --- ABA: PERFIL ---
 class PerfilAba extends StatelessWidget {
   final String cargo;
   const PerfilAba({super.key, required this.cargo});
@@ -153,7 +156,7 @@ class PerfilAba extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       children: [
         GestureDetector(
-          onTap: () {}, // Ação para Galeria
+          onTap: () {}, 
           child: Column(
             children: [
               const CircleAvatar(radius: 50, backgroundColor: roxoAura, child: Icon(Icons.camera_alt, color: Colors.white, size: 30)),
@@ -190,7 +193,7 @@ class PerfilAba extends StatelessWidget {
   }
 }
 
-// --- PAINEL ADM (TUDO RESTAURADO E FUNCIONAL) ---
+// --- PAINEL ADM ---
 class PainelAdmAba extends StatelessWidget {
   final String cargo;
   final bool temAlerta;
@@ -213,7 +216,7 @@ class PainelAdmAba extends StatelessWidget {
                     padding: const EdgeInsets.all(2),
                     decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
                     constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                    child: const Text('1', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                    child: const Text('1', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold), textAlign: textAlign: TextAlign.center),
                   ),
                 )
             ],
@@ -240,7 +243,7 @@ class PainelAdmAba extends StatelessWidget {
   }
 }
 
-// --- STUBS COMPLEMENTARES ---
-class PesquisaAba extends StatelessWidget { final List<Anime> animes; const PesquisaAba({super.key, required this.animes}); @override Widget build(BuildContext context) => const Center(child: Text("Busca Funcional (Tempo Real)")); }
+// --- STUBS ---
+class PesquisaAba extends StatelessWidget { final List<Anime> animes; const PesquisaAba({super.key, required this.animes}); @override Widget build(BuildContext context) => const Center(child: Text("Busca")); }
 class AgendaAba extends StatelessWidget { final String diaAtivo; final Function(String) onDiaChange; const AgendaAba({super.key, required this.diaAtivo, required this.onDiaChange}); @override Widget build(BuildContext context) => Column(children: [SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((d) => Padding(padding: const EdgeInsets.all(8), child: ChoiceChip(label: Text(d), selected: diaAtivo == d, selectedColor: roxoAura, onSelected: (v) => onDiaChange(d)))).toList()))]); }
 
