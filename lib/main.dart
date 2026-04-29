@@ -95,7 +95,7 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 }
 
-// --- ABA: BIBLIOTECA (CORREÇÃO DO ERRO DO BORDER AQUI) ---
+// --- ABA: BIBLIOTECA ---
 class BibliotecaAba extends StatelessWidget {
   final List<Anime> animes;
   const BibliotecaAba({super.key, required this.animes});
@@ -106,7 +106,7 @@ class BibliotecaAba extends StatelessWidget {
       color: const Color(0xFF1A1A1A),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10), 
-        side: const BorderSide(color: roxoAura, width: 0.5) // Correção: de 'border' para 'side'
+        side: const BorderSide(color: roxoAura, width: 0.5)
       ),
       child: Chip(
         label: Row(mainAxisSize: MainAxisSize.min, children: [Text(label), const Icon(Icons.arrow_drop_down, size: 18)]), 
@@ -216,7 +216,11 @@ class PainelAdmAba extends StatelessWidget {
                     padding: const EdgeInsets.all(2),
                     decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
                     constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                    child: const Text('1', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold), textAlign: textAlign: TextAlign.center),
+                    child: const Text(
+                      '1', 
+                      style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold), 
+                      textAlign: TextAlign.center
+                    ),
                   ),
                 )
             ],
