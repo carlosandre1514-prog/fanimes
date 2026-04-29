@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 void main() => runApp(const FanimesApp());
 
+// --- CONSTANTES DE DESIGN ---
 const Color roxoAura = Color(0xFF673AB7);
 const Color pretoEletrico = Color(0xFF0D0D0D);
 const Color brancoTexto = Colors.white;
@@ -11,7 +12,7 @@ class FanimesApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'FÃNIMES',
+      title: 'FÃNIMES BETA 1',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         primaryColor: roxoAura,
@@ -21,6 +22,12 @@ class FanimesApp extends StatelessWidget {
       home: const MainNavigation(),
     );
   }
+}
+
+// --- MODELOS ---
+class SupportTicket {
+  final String id, userNick, userEmail, message;
+  SupportTicket({required this.id, required this.userNick, required this.userEmail, required this.message});
 }
 
 // --- NAVEGAÇÃO PRINCIPAL ---
@@ -34,25 +41,28 @@ class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
   bool isLogged = false;
   String currentRole = 'Visitante';
-  String? userEmail;
+  String userNick = "Carlos Andre"; 
   String diaSelecionado = "Qua";
-  bool temNotificacaoAdm = true; // Só aparece a bolinha se for true
+  bool temNotificacaoAdm = true;
 
-  void _onItemTapped(int index) { setState(() => _selectedIndex = index); }
+  // Tickets de suporte simulados
+  List<SupportTicket> tickets = [
+    SupportTicket(id: "1", userNick: "Carlos01", userEmail: "carlos@teste.com", message: "Erro ao carregar os episódios."),
+  ];
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> telas = [
-      const Center(child: Text("Home (Sem animes ainda)")),
+      const Center(child: Text("Home - Lista de Trilhos")),
       const BibliotecaAba(),
       const PesquisaAba(),
       AgendaAba(diaAtivo: diaSelecionado, onDiaChange: (d) => setState(() => diaSelecionado = d)),
       PerfilAba(
         isLogged: isLogged, 
+        userNick: userNick,
         currentRole: currentRole, 
         onLogin: (email) => setState(() {
           isLogged = true;
-          userEmail = email;
           currentRole = (email == 'carlos@adm.com') ? 'Geral' : 'Usuário';
         }),
         onLogout: () => setState(() { isLogged = false; currentRole = 'Visitante'; }),
@@ -65,7 +75,7 @@ class _MainNavigationState extends State<MainNavigation> {
         title: GestureDetector(
           onTap: () {
             if (currentRole == 'Geral') {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => PainelAdmAba(temAlerta: temNotificacaoAdm)));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => PainelAdmAba(temAlerta: temNotificacaoAdm, tickets: tickets)));
             }
           },
           child: RichText(
@@ -83,7 +93,7 @@ class _MainNavigationState extends State<MainNavigation> {
       body: telas[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+        onTap: (i) => setState(() => _selectedIndex = i),
         type: BottomNavigationBarType.fixed,
         backgroundColor: pretoEletrico,
         selectedItemColor: roxoAura,
@@ -100,7 +110,55 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 }
 
-// --- AGENDA (RECUPERADA) ---
+// --- ABA: BIBLIOTECA (RESTAURADA E COMPLETA) ---
+class BibliotecaAba extends StatelessWidget {
+  const BibliotecaAba({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildFiltro("Gênero"),
+              _buildFiltro("Status"),
+              _buildFiltro("Idioma"),
+            ],
+          ),
+        ),
+        const Expanded(child: Center(child: Text("Nenhum anime na biblioteca ainda."))),
+      ],
+    );
+  }
+  Widget _buildFiltro(String label) => Chip(
+    label: Row(children: [Text(label), const Icon(Icons.arrow_drop_down, size: 18)]),
+    backgroundColor: Colors.white10,
+  );
+}
+
+// --- ABA: PESQUISA (RESTAURADA E COMPLETA) ---
+class PesquisaAba extends StatelessWidget {
+  const PesquisaAba({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: 'Busca',
+          prefixIcon: const Icon(Icons.search, color: roxoAura),
+          filled: true,
+          fillColor: Colors.white10,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+        ),
+      ),
+    );
+  }
+}
+
+// --- ABA: AGENDA (INTACTA) ---
 class AgendaAba extends StatelessWidget {
   final String diaAtivo;
   final Function(String) onDiaChange;
@@ -125,61 +183,55 @@ class AgendaAba extends StatelessWidget {
             )).toList(),
           ),
         ),
-        const Expanded(child: Center(child: Text("Lançamentos do dia"))),
+        const Expanded(child: Center(child: Text("Lançamentos de Hoje"))),
       ],
     );
   }
 }
 
-// --- PERFIL (RECUPERADO E COMPLETO) ---
+// --- ABA: PERFIL (NICKNAME ABAIXO DA FOTO) ---
 class PerfilAba extends StatelessWidget {
   final bool isLogged;
-  final String currentRole;
+  final String userNick, currentRole;
   final Function(String) onLogin;
   final VoidCallback onLogout;
 
-  const PerfilAba({super.key, required this.isLogged, required this.currentRole, required this.onLogin, required this.onLogout});
+  const PerfilAba({super.key, required this.isLogged, required this.userNick, required this.currentRole, required this.onLogin, required this.onLogout});
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        const CircleAvatar(radius: 50, backgroundColor: Colors.white10, child: Icon(Icons.person, size: 50, color: roxoAura)),
+        const Center(child: CircleAvatar(radius: 60, backgroundColor: Colors.white10, child: Icon(Icons.person, size: 50, color: roxoAura))),
         const SizedBox(height: 10),
-        Center(child: Text(isLogged ? currentRole : "Usuário Desconectado", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+        Center(child: Text(isLogged ? userNick : "Visitante", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold))),
+        Center(child: Text(isLogged ? currentRole : "", style: const TextStyle(color: roxoAura, fontSize: 14))),
         const SizedBox(height: 20),
-        if (!isLogged)
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: roxoAura),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => AuthPage(onLogin: onLogin))),
-            child: const Text("LOGIN / CADASTRO"),
-          ),
+        if (!isLogged) ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: roxoAura), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => AuthPage(onLogin: onLogin))), child: const Text("LOGIN / CADASTRO")),
         const Divider(height: 40),
-        _item(context, Icons.bug_report, "Relatar Problema / Sugestões", isAction: true),
-        _item(context, Icons.shuffle, "Reprodução Aleatória"),
-        _item(context, Icons.download, "Downloads"),
-        _item(context, Icons.wallpaper, "Papéis de Parede"),
-        if (isLogged) _item(context, Icons.logout, "Sair da Conta", color: Colors.red, onTap: onLogout),
+        _buildListTile(context, Icons.bug_report, "Relatar Problema / Sugestão", isAction: true),
+        _buildListTile(context, Icons.shuffle, "Reprodução Aleatória"),
+        _buildListTile(context, Icons.download, "Downloads"),
+        _buildListTile(context, Icons.wallpaper, "Papéis de Parede"),
+        if (isLogged) _buildListTile(context, Icons.logout, "Sair da Conta", color: Colors.red, onTap: onLogout),
       ],
     );
   }
-
-  Widget _item(BuildContext context, IconData icon, String text, {Color color = Colors.white, bool isAction = false, VoidCallback? onTap}) {
+  Widget _buildListTile(BuildContext context, IconData icon, String title, {Color color = Colors.white, bool isAction = false, VoidCallback? onTap}) {
     return ListTile(
       leading: Icon(icon, color: isAction ? roxoAura : color),
-      title: Text(text, style: TextStyle(color: color)),
-      onTap: onTap ?? () {
-        if (isAction) Navigator.push(context, MaterialPageRoute(builder: (context) => const EnviarSuportePage()));
-      },
+      title: Text(title, style: TextStyle(color: color)),
+      onTap: onTap ?? () { if (isAction) Navigator.push(context, MaterialPageRoute(builder: (context) => const EnviarSuportePage())); },
     );
   }
 }
 
-// --- PAINEL ADM (TUDO RECUPERADO E CORRIGIDO) ---
+// --- PAINEL ADM (COMPLETO) ---
 class PainelAdmAba extends StatelessWidget {
   final bool temAlerta;
-  const PainelAdmAba({super.key, required this.temAlerta});
+  final List<SupportTicket> tickets;
+  const PainelAdmAba({super.key, required this.temAlerta, required this.tickets});
 
   @override
   Widget build(BuildContext context) {
@@ -187,113 +239,39 @@ class PainelAdmAba extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Painel Administrativo"),
         actions: [
-          Stack(
-            children: [
-              const IconButton(icon: Icon(Icons.notifications, color: roxoAura), onPressed: null),
-              if (temAlerta)
-                Positioned(
-                  right: 10, top: 10,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                    constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
-                    child: const Text('1', style: TextStyle(color: Colors.white, fontSize: 8), textAlign: TextAlign.center),
-                  ),
-                )
-            ],
-          )
+          Stack(children: [
+            const IconButton(icon: Icon(Icons.notifications, color: roxoAura), onPressed: null),
+            if (temAlerta) Positioned(right: 10, top: 10, child: Container(padding: const EdgeInsets.all(2), decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle), constraints: const BoxConstraints(minWidth: 14, minHeight: 14), child: const Text('1', style: TextStyle(color: Colors.white, fontSize: 8), textAlign: TextAlign.center)))
+          ])
         ],
       ),
       body: ListView(
         children: [
-          const ListTile(leading: Icon(Icons.verified_user), title: Text("Autorizar Promoções")),
-          const ListTile(leading: Icon(Icons.create_new_folder), title: Text("Criar Trilhos")),
-          const ListTile(leading: Icon(Icons.add_circle), title: Text("Adicionar Anime")),
-          const ListTile(leading: Icon(Icons.edit), title: Text("Editar Dados")),
-          ListTile(
-            leading: const Icon(Icons.message, color: roxoAura),
-            title: const Text("Suporte ao Usuário"),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const VerTicketsPage())),
-          ),
-          const ListTile(leading: Icon(Icons.people), title: Text("Gerenciar Usuários")),
+          _admTile(Icons.verified_user, "Autorizar Promoções"),
+          _admTile(Icons.create_new_folder, "Criar e Nomear Trilhos"),
+          _admTile(Icons.add_circle, "Adicionar Anime"),
+          _admTile(Icons.message, "Suporte ao Usuário", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => VerTicketsPage(tickets: tickets)))),
+          _admTile(Icons.people, "Gerenciar Usuários"),
         ],
       ),
     );
   }
+  Widget _admTile(IconData i, String t, {VoidCallback? onTap}) => ListTile(leading: Icon(i, color: roxoAura), title: Text(t), onTap: onTap);
 }
 
-// --- PÁGINA DE LOGIN/CADASTRO (ESTILO PAINEL ADM) ---
-class AuthPage extends StatelessWidget {
-  final Function(String) onLogin;
-  const AuthPage({super.key, required this.onLogin});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Acessar FÃNIMES")),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            TextField(decoration: InputDecoration(labelText: "Nickname", filled: true, fillColor: Colors.white10, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)))),
-            const SizedBox(height: 10),
-            TextField(decoration: InputDecoration(labelText: "E-mail", filled: true, fillColor: Colors.white10, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)))),
-            const SizedBox(height: 10),
-            TextField(obscureText: true, decoration: InputDecoration(labelText: "Senha", filled: true, fillColor: Colors.white10, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)))),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: roxoAura, minimumSize: const Size(double.infinity, 50)),
-              onPressed: () { onLogin('carlos@adm.com'); Navigator.pop(context); },
-              child: const Text("ENTRAR"),
-            ),
-            TextButton(onPressed: () {}, child: const Text("Não possui conta? Cadastre-se", style: TextStyle(color: roxoAura))),
-            const Divider(height: 40),
-            OutlinedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.g_mobiledata, size: 30),
-              label: const Text("Entrar com Google"),
-              style: OutlinedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// --- PÁGINAS DE SUPORTE ---
-class EnviarSuportePage extends StatelessWidget {
-  const EnviarSuportePage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Relatar Problema")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const TextField(maxLines: 5, decoration: InputDecoration(hintText: "Descreva o problema ou sugestão...", filled: true, fillColor: Colors.white10, border: OutlineInputBorder())),
-            const SizedBox(height: 20),
-            ElevatedButton(onPressed: () => Navigator.pop(context), style: ElevatedButton.styleFrom(backgroundColor: roxoAura), child: const Text("ENVIAR AOS ADMS"))
-          ],
-        ),
-      ),
-    );
-  }
-}
-
+// --- PÁGINAS DE SUPORTE E LOGIN ---
 class VerTicketsPage extends StatelessWidget {
-  const VerTicketsPage({super.key});
+  final List<SupportTicket> tickets;
+  const VerTicketsPage({super.key, required this.tickets});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Tickets de Suporte")),
+      appBar: AppBar(title: const Text("Tickets Recebidos")),
       body: ListView.builder(
-        itemCount: 1,
-        itemBuilder: (context, index) => ListTile(
-          title: const Text("Nickname: Carlos01"),
-          subtitle: const Text("E-mail: usuario@teste.com\nProblema: O app fechou sozinho."),
-          isThreeLine: true,
+        itemCount: tickets.length,
+        itemBuilder: (context, i) => ListTile(
+          title: Text("De: ${tickets[i].userNick}"),
+          subtitle: Text(tickets[i].message),
           trailing: TextButton(onPressed: () {}, child: const Text("Responder", style: TextStyle(color: roxoAura))),
         ),
       ),
@@ -301,7 +279,30 @@ class VerTicketsPage extends StatelessWidget {
   }
 }
 
-// STUBS RESTANTES
-class BibliotecaAba extends StatelessWidget { const BibliotecaAba({super.key}); @override Widget build(BuildContext context) => const Center(child: Text("Biblioteca")); }
-class PesquisaAba extends StatelessWidget { const PesquisaAba({super.key}); @override Widget build(BuildContext context) => const Center(child: Text("Pesquisa")); }
+class AuthPage extends StatelessWidget {
+  final Function(String) onLogin;
+  const AuthPage({super.key, required this.onLogin});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Login / Cadastro")),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(children: [
+          const TextField(decoration: InputDecoration(labelText: "E-mail", filled: true, fillColor: Colors.white10)),
+          const SizedBox(height: 10),
+          const TextField(obscureText: true, decoration: InputDecoration(labelText: "Senha", filled: true, fillColor: Colors.white10)),
+          const SizedBox(height: 20),
+          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: roxoAura, minimumSize: const Size(double.infinity, 50)), onPressed: () { onLogin('carlos@adm.com'); Navigator.pop(context); }, child: const Text("ENTRAR")),
+        ]),
+      ),
+    );
+  }
+}
+
+class EnviarSuportePage extends StatelessWidget {
+  const EnviarSuportePage({super.key});
+  @override
+  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text("Relatar Problema")), body: const Center(child: Text("Formulário de Ticket")));
+}
 
