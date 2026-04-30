@@ -1,10 +1,10 @@
 name: fanimes
 description: "A new Flutter project."
-publish_to: "none"
+publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: "^3.11.5"
+  sdk: ^3.11.5
 
 dependencies:
   flutter:
@@ -15,9 +15,10 @@ dependencies:
   cloud_firestore: ^5.6.5
 
 dev_dependencies:
-  flutter_test:
+  flutter:
     sdk: flutter
   flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
+

@@ -1,14 +1,13 @@
-rm lib/main.dart
-printf "import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    await Firebase.initializeApp().timeout(const Duration(seconds: 8));
+    await Firebase.initializeApp();
   } catch (e) {
-    debugPrint('Erro Firebase: \$e');
+    debugPrint("Erro Firebase: $e");
   }
   runApp(const FanimesApp());
 }
@@ -21,7 +20,9 @@ class FanimesApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(scaffoldBackgroundColor: const Color(0xFF0D0D0D)),
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: const Color(0xFF0D0D0D),
+      ),
       home: const MainNavigation(),
     );
   }
@@ -45,25 +46,28 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
-    bool isCarlos = user?.email == 'carlosandre.ad1514@gmail.com' || user == null;
+    bool isCarlos = user?.email == "carlosandre.ad1514@gmail.com" || user == null;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: const Text('FÃNIMES', style: TextStyle(color: roxoAura, fontWeight: FontWeight.bold)),
+        elevation: 0,
+        title: const Text("FÃNIMES", style: TextStyle(color: roxoAura, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
-      body: _idx == 4 ? _abaPerfil(isCarlos) : const Center(child: Text('Em breve...')),
+      body: _idx == 4 ? _abaPerfil(isCarlos) : const Center(child: Text("Em breve...")),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _idx,
         onTap: (i) => setState(() => _idx = i),
         selectedItemColor: roxoAura,
+        unselectedItemColor: Colors.white30,
         type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.black,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: 'Biblioteca'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Busca'),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: 'Agenda'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: "Biblioteca"),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Busca"),
+          BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: "Agenda"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Perfil"),
         ],
       ),
     );
@@ -75,13 +79,12 @@ class _MainNavigationState extends State<MainNavigation> {
         const SizedBox(height: 30),
         const CircleAvatar(radius: 50, backgroundColor: Colors.white10, child: Icon(Icons.person, color: roxoAura, size: 45)),
         const SizedBox(height: 15),
-        Text(user?.email ?? 'Carlos Andre', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        Text(adm ? 'ADM Geral' : 'Membro', style: const TextStyle(color: roxoAura, fontWeight: FontWeight.bold)),
+        Text(user?.email ?? "Carlos Andre", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(adm ? "ADM Geral" : "Membro", style: const TextStyle(color: roxoAura, fontWeight: FontWeight.bold)),
         const Divider(height: 50, color: Colors.white12, indent: 40, endIndent: 40),
-        const ListTile(leading: Icon(Icons.bug_report, color: roxoAura), title: Text('Painel ADM')),
+        const ListTile(leading: Icon(Icons.bug_report, color: roxoAura), title: Text("Painel ADM")),
       ],
     );
   }
 }
-" > lib/main.dart
 
