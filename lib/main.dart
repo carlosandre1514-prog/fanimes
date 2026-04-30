@@ -7,7 +7,7 @@ void main() async {
   try {
     await Firebase.initializeApp();
   } catch (e) {
-    debugPrint("Erro ao iniciar Firebase: $e");
+    debugPrint("Erro Firebase: $e");
   }
   runApp(const FanimesApp());
 }
@@ -49,9 +49,7 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
-    // Reconhece você automaticamente como ADM Geral pelo e-mail
     bool isCarlos = user?.email == 'carlosandre1514@gmail.com' || user == null;
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -59,7 +57,7 @@ class _MainNavigationState extends State<MainNavigation> {
         title: const Text('FÃNIMES', style: TextStyle(color: roxoAura, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
-      body: _idx == 4 ? _abaPerfil(isCarlos) : const Center(child: Text('Em breve...', style: TextStyle(color: Colors.white24))),
+      body: _idx == 4 ? _abaPerfil(isCarlos) : const Center(child: Text('Beta 1 - Carregando...')),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _idx,
         onTap: (i) => setState(() => _idx = i),
@@ -82,19 +80,12 @@ class _MainNavigationState extends State<MainNavigation> {
     return Column(
       children: [
         const SizedBox(height: 30),
-        const CircleAvatar(
-          radius: 50, 
-          backgroundColor: Colors.white10, 
-          child: Icon(Icons.person, color: roxoAura, size: 45)
-        ),
+        const CircleAvatar(radius: 50, backgroundColor: Colors.white10, child: Icon(Icons.person, color: roxoAura, size: 45)),
         const SizedBox(height: 15),
         Text(user?.email ?? 'Carlos Andre', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         Text(adm ? 'ADM Geral' : 'Membro', style: const TextStyle(color: roxoAura, fontWeight: FontWeight.bold)),
         const Divider(height: 50, color: Colors.white12, indent: 40, endIndent: 40),
-        ListTile(
-          leading: const Icon(Icons.bug_report, color: roxoAura),
-          title: Text(adm ? 'Painel ADM Geral' : 'Suporte ao Usuário'),
-        ),
+        const ListTile(leading: Icon(Icons.bug_report, color: roxoAura), title: Text('Painel ADM Geral')),
       ],
     );
   }
