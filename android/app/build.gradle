@@ -24,6 +24,7 @@ android {
         targetSdkVersion 34
         versionCode 1
         versionName "1.0"
+        // ESSA LINHA ABAIXO É A QUE VAI PARAR O FECHAMENTO (CRASH)
         multiDexEnabled true
     }
 
@@ -41,6 +42,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-firestore'
+    // BIBLIOTECA DE SUPORTE PARA NÃO FECHAR
     implementation 'com.android.support:multidex:1.0.3'
 }
 
