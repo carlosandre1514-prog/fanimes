@@ -1,7 +1,3 @@
-    id "com.android.application"
-    id "kotlin-android"
-    id "com.google.gms.google-services"
-    id "dev.flutter.flutter-gradle-plugin"
 plugins {
     id "com.android.application"
     id "kotlin-android"
@@ -24,11 +20,11 @@ android {
 
     defaultConfig {
         applicationId "com.example.fanimes"
-        minSdkVersion 23 // Aumentado para 23 para evitar conflitos de segurança antigos
+        minSdkVersion 23
         targetSdkVersion 34
         versionCode 1
         versionName "1.0"
-        multiDexEnabled true 
+        multiDexEnabled true
     }
 
     buildTypes {
